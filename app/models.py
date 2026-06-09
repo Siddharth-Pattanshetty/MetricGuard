@@ -81,3 +81,10 @@ class Log(Base):
 
     def __repr__(self):
         return f"<Log(id={self.id}, timestamp={self.timestamp}, level='{self.level}', service_name='{self.service_name}')>"
+
+
+# ==========================================================
+# PHASE 10 — Import Correlation model so it registers with
+# Base.metadata for Alembic autogenerate and create_all().
+# ==========================================================
+from backend.models.correlation import Correlation  # noqa: E402, F401

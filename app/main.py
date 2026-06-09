@@ -7,6 +7,7 @@ from datetime import datetime
 
 from app.database import engine, Base, SessionLocal, get_db, verify_db_connection
 from app.routers import metrics, anomalies, ml, logs
+from backend.routes.correlation_routes import router as correlation_router  # Phase 10
 from app.ml_service import get_ml_service
 
 # =========================================================
@@ -97,6 +98,7 @@ app.include_router(metrics.router)
 app.include_router(anomalies.router)
 app.include_router(ml.router)
 app.include_router(logs.router)
+app.include_router(correlation_router)  # Phase 10: Metric-Log Correlation Engine
 
 
 # =========================================================
