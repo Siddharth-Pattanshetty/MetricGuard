@@ -324,3 +324,86 @@ class TestIncidentAPI:
         patch_bad = client.patch(f"/incidents/{iid}", json={"status": "RESOLVED"})
         assert patch_bad.status_code == 400
         assert "Invalid status transition" in patch_bad.json()["detail"]
+
+
+class TestAutomaticIntegration:
+    """Verify the end-to-end AIOps flow (RCA/Service Impact -> Incidents) is automated."""
+
+    def test_manual_service_impact_creates_incident(self, client, db_session):
+        # Trigger Service Impact manual API
+        payload = {
+            "root_cause": "Disk Failure",
+            "affected_service": "storage",
+            "confidence": 0.95
+        }
+        resp = client.post("/services/analyze", json=payload)
+        assert resp.status_code == 200
+        
+        # Verify an incident was created automatically
+        from backend.models.incident import Incident
+        incident = (
+            db_session.query(Incident)
+            .filter(Incident.root_cause == "Disk Failure")
+            .order_by(Incident.id.desc())
+            .first()
+        )
+        assert incident is not None
+        assert "datanode" in incident.group_key
+        assert "datanode" in incident.impacted_services
+        assert incident.priority == "P1"
+        assert incident.severity == "Critical"
+
+    def test_correlation_store_creates_incident(self, db_session):
+        # Setup dummy metric anomaly & log anomaly in database
+        from app.models import Metric, Anomaly, Log
+        metric = Metric(timestamp=datetime.utcnow(), cpu_usage=50.0)
+        db_session.add(metric)
+        db_session.commit()
+
+        m_anomaly = Anomaly(
+            timestamp=datetime.utcnow(),
+            anomaly_score=0.9,
+            root_cause="Disk Failure",
+            severity="critical",
+            detected_by="test",
+            metric_id=metric.id
+        )
+        db_session.add(m_anomaly)
+
+        log = Log(
+            timestamp=datetime.utcnow(),
+            level="ERROR",
+            service_name="storage",
+            message="disk write failed on sector 5"
+        )
+        db_session.add(log)
+        db_session.commit()
+
+        # Call correlation service
+        from backend.services.correlation_service import get_correlation_service
+        corr_service = get_correlation_service()
+        
+        corr_data = {
+            "metric_anomaly_id": m_anomaly.id,
+            "log_anomaly_id": log.id,
+            "correlation_score": 0.94,
+            "inferred_cause": "Disk Failure",
+            "confidence": 94.0,
+            "service_name": "storage"
+        }
+        
+        corr_service.store_correlation(db_session, corr_data)
+
+        # Verify that storing correlation automatically generated an incident
+        from backend.models.incident import Incident
+        incident = (
+            db_session.query(Incident)
+            .filter(Incident.root_cause == "Disk Failure")
+            .order_by(Incident.id.desc())
+            .first()
+        )
+        assert incident is not None
+        assert "datanode" in incident.group_key
+        assert incident.priority == "P1"
+        assert incident.severity == "Critical"
+

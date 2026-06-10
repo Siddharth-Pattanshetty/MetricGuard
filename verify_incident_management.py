@@ -9,7 +9,11 @@ Run with:   python verify_incident_management.py
 
 import sys
 import os
+import logging
 from datetime import datetime, timedelta
+
+# Configure logging to stdout
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 # Add workspace root to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -178,11 +182,106 @@ def test_lifecycle_validation():
         db.close()
 
 
+def test_automatic_pipeline():
+    print("=" * 60)
+    print("TEST 4: Automated RCA -> Correlation -> Incident Integration")
+    print("=" * 60)
+
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    
+    try:
+        from app.models import Metric, Anomaly, Log
+        from backend.models.correlation import Correlation
+        from backend.models.incident import Incident
+        
+        # 1. Create dummy parent metric & anomalies
+        metric = Metric(timestamp=datetime.utcnow(), cpu_usage=88.8)
+        db.add(metric)
+        db.commit()
+        
+        m_anomaly = Anomaly(
+            timestamp=datetime.utcnow(),
+            anomaly_score=0.95,
+            root_cause="Disk Failure",
+            severity="critical",
+            detected_by="test",
+            metric_id=metric.id
+        )
+        db.add(m_anomaly)
+        
+        log = Log(
+            timestamp=datetime.utcnow(),
+            level="ERROR",
+            service_name="storage",
+            message="disk I/O error on device /dev/sdb"
+        )
+        db.add(log)
+        db.commit()
+        
+        # 2. Invoke correlation service to simulate a detected correlation
+        from backend.services.correlation_service import get_correlation_service
+        corr_service = get_correlation_service()
+        
+        corr_data = {
+            "metric_anomaly_id": m_anomaly.id,
+            "log_anomaly_id": log.id,
+            "correlation_score": 0.95,
+            "inferred_cause": "Disk Failure",
+            "confidence": 95.0,
+            "service_name": "storage"
+        }
+        
+        print("  Storing Correlation... should auto-trigger Service Impact & Incident creation.")
+        corr = corr_service.store_correlation(db, corr_data)
+        
+        # 3. Verify that an incident record was automatically generated
+        incident = (
+            db.query(Incident)
+            .filter(Incident.root_cause == "Disk Failure")
+            .order_by(Incident.id.desc())
+            .first()
+        )
+        
+        if incident:
+            print(f"  Retrieved Incident Details:")
+            print(f"    - ID: {incident.id}")
+            print(f"    - incident_id: {incident.incident_id}")
+            print(f"    - root_cause: {incident.root_cause}")
+            print(f"    - group_key: {incident.group_key}")
+            print(f"    - impacted_services: {incident.impacted_services}")
+        else:
+            print("  Retrieved Incident is None!")
+
+        assert incident is not None
+        print(f"  Auto-Generated Incident: {incident.incident_id} | Priority: {incident.priority} | Severity: {incident.severity}")
+        assert incident.priority == "P1"
+        assert incident.severity == "Critical"
+        assert "datanode" in incident.group_key
+        
+        # Cleanup
+        db.delete(corr)
+        db.delete(incident)
+        db.delete(m_anomaly)
+        db.delete(log)
+        db.delete(metric)
+        db.commit()
+        print("  ✅ Automated workflow successfully verified.\n")
+        
+    except Exception as e:
+        db.rollback()
+        print(f"  ❌ Automated pipeline test failed: {e}")
+        raise e
+    finally:
+        db.close()
+
+
 if __name__ == "__main__":
     print("\n🚀 Starting MetricGuard Phase 12 Verification Script...\n")
     test_rules()
     test_service_flow()
     test_lifecycle_validation()
+    test_automatic_pipeline()
     print("=" * 60)
     print("🎉 ALL VERIFICATIONS PASSED SUCCESSFULLY")
     print("=" * 60)

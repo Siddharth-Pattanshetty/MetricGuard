@@ -19,12 +19,15 @@ from __future__ import annotations
 import logging
 from typing import List, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 
+from app.database import get_db
 from backend.service_impact.service_graph import get_service_graph
 from backend.service_impact.impact_analyzer import get_impact_analyzer
 from backend.service_impact.service_health import get_service_health_engine
+from backend.services.incident_service import get_incident_service
 
 logger = logging.getLogger("metricguard.service_impact.routes")
 
@@ -193,7 +196,7 @@ def get_dashboard_summary():
 # ----------------------------------------------------------
 
 @router.post("/analyze", response_model=AnalyzeResponse)
-def analyze_impact(payload: AnalyzeRequest):
+def analyze_impact(payload: AnalyzeRequest, db: Session = Depends(get_db)):
     """
     Run service impact analysis using RCA output.
 
@@ -215,6 +218,22 @@ def analyze_impact(payload: AnalyzeRequest):
             result["severity"],
             result["total_affected"],
         )
+
+        # Automatically create or update an incident based on the analysis output
+        try:
+            incident_service = get_incident_service()
+            incident_service.create_incident(
+                db=db,
+                root_cause=result["root_cause"],
+                impacted_services=result["impacted_services"],
+            )
+        except Exception as err:
+            logger.error(
+                "[Services API] Automatically generating incident failed: %s",
+                err,
+                exc_info=True,
+            )
+
         return AnalyzeResponse(**result)
     except ValueError as ve:
         logger.warning("[Services API] Validation error: %s", ve)

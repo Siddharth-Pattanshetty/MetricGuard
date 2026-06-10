@@ -207,6 +207,38 @@ class CorrelationService:
             db.add(db_corr)
             db.commit()
             db.refresh(db_corr)
+
+            # Automatically run Service Impact & Incident Creation for the new correlation
+            try:
+                from backend.service_impact.impact_analyzer import get_impact_analyzer
+                from backend.services.incident_service import get_incident_service
+                
+                analyzer = get_impact_analyzer()
+                incident_service = get_incident_service()
+                
+                affected = db_corr.service_name
+                if not affected or not analyzer._graph.service_exists(affected.strip().lower()):
+                    # Fallback to a default known registered service (e.g. namenode)
+                    affected = "namenode"
+                
+                impact_res = analyzer.analyze(
+                    root_cause=db_corr.inferred_cause or "Unknown",
+                    affected_service=affected,
+                    confidence=db_corr.correlation_score,
+                )
+                
+                incident_service.create_incident(
+                    db=db,
+                    root_cause=impact_res["root_cause"],
+                    impacted_services=impact_res["impacted_services"],
+                )
+            except Exception as auto_err:
+                logger.error(
+                    "[Correlation Engine] Automatic Service Impact/Incident generation failed: %s",
+                    auto_err,
+                    exc_info=True,
+                )
+
             return db_corr
         except Exception as e:
             db.rollback()
