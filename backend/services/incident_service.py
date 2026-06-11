@@ -268,6 +268,19 @@ class IncidentService:
             db.add(incident)
             db.commit()
             db.refresh(incident)
+
+            # Phase 14: Automatically trigger Alert Manager
+            try:
+                from backend.alerting.alert_manager import get_alert_manager
+                alert_mgr = get_alert_manager()
+                alert_mgr.create_alert(db, incident)
+            except Exception as ae:
+                logger.error(
+                    "[Incident Service] Failed to automatically create alert for incident %s: %s",
+                    incident_id,
+                    ae,
+                    exc_info=True,
+                )
         except Exception as e:
             db.rollback()
             logger.error(
