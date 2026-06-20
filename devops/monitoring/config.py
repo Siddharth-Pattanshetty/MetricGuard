@@ -39,7 +39,7 @@ class Config:
     # Backend API Settings
     # --------------------------------------------------
     # The URL where collected metrics are POSTed
-    BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000/metrics")
+    BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:8000/metrics")
 
     # Timeout (seconds) for each HTTP request to the backend
     REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "10"))

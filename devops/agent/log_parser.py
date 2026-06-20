@@ -66,15 +66,15 @@ from typing import Optional, Dict, Any
 #   <datetime>  <LEVEL>  <message>
 #
 # Group 1: timestamp  (YYYY-MM-DD HH:MM:SS)
-# Group 2: level      (DEBUG|INFO|WARNING|ERROR|CRITICAL)
+# Group 2: level      (TRACE|DEBUG|INFO|WARN|WARNING|ERROR|FATAL|CRITICAL)
 # Group 3: message    (everything that follows)
 # ----------------------------------------------------------
 _LOG_PATTERN = re.compile(
-    r"^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})"  # timestamp
-    r"\s+"                                          # separator
-    r"(DEBUG|INFO|WARNING|ERROR|CRITICAL)"          # level
-    r"\s+"                                          # separator
-    r"(.+)$",                                       # message
+    r"^(\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?:\.\d{3})?(?:[+-]\d{2}:?\d{2}|Z)?)"  # YYYY-MM-DD HH:MM:SS or ISO-8601
+    r"\s+"                                                                          # separator
+    r"(TRACE|DEBUG|INFO|WARN|WARNING|ERROR|FATAL|CRITICAL)"                         # level
+    r"\s+"                                                                          # separator
+    r"(.+)$",                                                                       # message
     re.IGNORECASE,
 )
 
@@ -85,6 +85,8 @@ _DEFAULT_SERVICE_MAP: Dict[str, str] = {
     "application.log": "application-service",
     "database.log":    "database-service",
     "server.log":      "server-service",
+    "springboot.log":  "springboot-service",
+    "spring.log":      "springboot-service",
 }
 
 
@@ -152,9 +154,16 @@ class LogParser:
         match = _LOG_PATTERN.match(stripped)
 
         if match:
+            level = match.group(2).upper()
+            if level == "TRACE":
+                level = "DEBUG"
+            elif level == "WARN":
+                level = "WARNING"
+            elif level == "FATAL":
+                level = "CRITICAL"
             return {
                 "timestamp":    match.group(1),
-                "level":        match.group(2).upper(),
+                "level":        level,
                 "message":      match.group(3).strip(),
                 "service_name": service,
             }

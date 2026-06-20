@@ -1,0 +1,2 @@
+incident_id,severity,root_cause,affected_services,recommendations,overall_status
+INC-000014,Medium,disk failure,Datanode,Check disk SMART status; Replace failing disk; Verify backup availability; Check disk space and permissions on datanode; Check HDFS service status for datanode; Monitor affected services; Schedule troubleshooting,healthy
