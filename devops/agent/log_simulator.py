@@ -225,10 +225,21 @@ def _pick_level():
         return "CRITICAL"
 
 
-def _generate_line(templates: dict) -> str:
+def _generate_line(templates: dict, service: str = None) -> str:
     """Generate a single formatted log line."""
     level = _pick_level()
-    template = random.choice(templates[level])
+    # Handle WARN / FATAL level mappings for Spring Boot
+    if service == "springboot" and level == "WARNING":
+        template_level = "WARNING"
+        level_name = "WARN"
+    elif service == "springboot" and level == "CRITICAL":
+        template_level = "CRITICAL"
+        level_name = "FATAL"
+    else:
+        template_level = level
+        level_name = level
+
+    template = random.choice(templates[template_level])
     values = _rand_values()
 
     try:
@@ -236,8 +247,32 @@ def _generate_line(templates: dict) -> str:
     except (KeyError, IndexError):
         message = template
 
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    return f"{timestamp} {level} {message}\n"
+    if service == "springboot":
+        # Format like Spring Boot 3 default log line:
+        # 2026-06-13T16:32:46.123+05:30  INFO 24156 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized...
+        now = datetime.now()
+        timestamp = now.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "+05:30"
+        
+        thread = random.choice(["main", "nio-8080-exec-1", "nio-8080-exec-2", "scheduling-1", "task-1"])
+        thread_str = f"[{thread:>15}]"
+        
+        logger = random.choice([
+            "o.s.b.w.embedded.tomcat.TomcatWebServer",
+            "o.s.web.servlet.DispatcherServlet",
+            "o.s.b.a.e.web.EndpointLinksResolver",
+            "com.example.metricguard.UserService",
+            "com.example.metricguard.OrderController",
+            "com.example.metricguard.auth.JwtFilter",
+        ])
+        
+        pid = values["pid"]
+        level_padded = f"{level_name:<5}"
+        
+        return f"{timestamp}  {level_padded} {pid} --- {thread_str} {logger:<40} : {message}\n"
+    else:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        return f"{timestamp} {level} {message}\n"
+
 
 
 # ==========================================================
@@ -272,12 +307,14 @@ def run_simulator(interval: float = 3.0, watched_dir: str = None):
         "application": os.path.join(watched_dir, "application.log"),
         "database":    os.path.join(watched_dir, "database.log"),
         "server":      os.path.join(watched_dir, "server.log"),
+        "springboot":  os.path.join(watched_dir, "springboot.log"),
     }
 
     templates = {
         "application": APPLICATION_LOGS,
         "database":    DATABASE_LOGS,
         "server":      SERVER_LOGS,
+        "springboot":  APPLICATION_LOGS, # Use application logs template
     }
 
     print("=" * 60)
@@ -306,7 +343,7 @@ def run_simulator(interval: float = 3.0, watched_dir: str = None):
 
                 lines = []
                 for _ in range(num_lines):
-                    line = _generate_line(template_set)
+                    line = _generate_line(template_set, service=service)
                     lines.append(line)
 
                 with open(filepath, "a", encoding="utf-8") as f:
@@ -315,17 +352,23 @@ def run_simulator(interval: float = 3.0, watched_dir: str = None):
                 for line in lines:
                     level_color = {
                         "INFO": "\033[92m",      # green
+                        "WARN": "\033[93m",      # yellow
                         "WARNING": "\033[93m",    # yellow
                         "ERROR": "\033[91m",      # red
+                        "FATAL": "\033[95m",     # magenta
                         "CRITICAL": "\033[95m",   # magenta
                     }
                     # Extract level from the line
-                    parts = line.strip().split(" ", 3)
-                    if len(parts) >= 3:
-                        lvl = parts[2]
-                        color = level_color.get(lvl, "")
+                    parts = [p for p in line.strip().split(" ") if p]
+                    if parts:
+                        if "T" in parts[0]:  # Spring Boot format YYYY-MM-DDTHH:MM:SS...
+                            lvl = parts[1] if len(parts) >= 2 else "INFO"
+                        else:
+                            lvl = parts[2] if len(parts) >= 3 else "INFO"
+                        color = level_color.get(lvl.upper(), "")
                         reset = "\033[0m" if color else ""
                         print(f"  [{service:11s}] {color}{line.strip()}{reset}")
+
 
             time.sleep(interval)
 

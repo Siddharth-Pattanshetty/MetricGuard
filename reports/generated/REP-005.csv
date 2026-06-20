@@ -1,0 +1,2 @@
+incident_id,severity,root_cause,affected_services,recommendations,overall_status,historical_matches
+INC-030016,Medium,namenode deadlock,Namenode,Inspect namenode database connections; Check HDFS service status for namenode; Monitor affected services; Schedule troubleshooting; Investigate logs; Review recent deployments; Perform manual diagnosis,degraded,INC-030016(100%)

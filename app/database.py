@@ -77,9 +77,9 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME = (
     os.getenv("DB_NAME")
     or
-    os.getenv("DB_DATABASE")
+    (None if os.getenv("DB_DATABASE") == "sys" else os.getenv("DB_DATABASE"))
     or
-    "metricguard"
+    "test"
 )
 
 

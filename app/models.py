@@ -84,11 +84,12 @@ class Log(Base):
 
 
 # ==========================================================
-# PHASE 10/12/14 — Import Correlation, Incident, and Alert models so they register with
+# PHASE 10/12/14/17 — Import Correlation, Incident, Alert, and History models so they register with
 # Base.metadata for Alembic autogenerate and create_all().
 # ==========================================================
 from backend.models.correlation import Correlation  # noqa: E402, F401
 from backend.models.incident import Incident  # noqa: E402, F401
 from backend.alerting.models import Alert  # noqa: E402, F401
+from backend.knowledge_base.models import IncidentHistory, RcaHistory, ResolutionHistory  # noqa: E402, F401
 
 
