@@ -1,0 +1,2 @@
+incident_id,severity,root_cause,affected_services,recommendations,overall_status
+INC-000011,Medium,SSL/TLS Certificate Issue,Client,Verify certificate expiration date; Renew SSL certificate with authority; Check server certificate configurations; Monitor client retry traffic; Inspect client logs; Monitor affected services; Schedule troubleshooting,degraded

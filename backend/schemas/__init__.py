@@ -23,3 +23,10 @@ from backend.schemas.recommendation import (
     RecommendationResponse,
 )
 
+from backend.schemas.report import (
+    ReportGenerateRequest,
+    ReportGenerateResponse,
+    ReportMetadataResponse,
+)
+
+

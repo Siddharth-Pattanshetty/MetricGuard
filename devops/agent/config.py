@@ -58,7 +58,7 @@ except ImportError:
 # Default values (used when a key is missing from the YAML)
 # ----------------------------------------------------------
 _DEFAULTS = {
-    "backend_url":       "http://localhost:8000/metrics",
+    "backend_url":       "http://127.0.0.1:8000/metrics",
     "collection_interval": 30,
     "agent_name":        "machine-01",
     "max_retries":       3,
@@ -285,7 +285,7 @@ def load_config(path: str | None = None) -> AgentConfig:
     -------
     >>> cfg = load_config()
     >>> cfg.backend_url
-    'http://localhost:8000/metrics'
+    'http://127.0.0.1:8000/metrics'
     >>> cfg.enabled_metrics["cpu"]
     True
     """

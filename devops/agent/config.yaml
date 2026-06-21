@@ -14,7 +14,7 @@
 # ── Backend API ─────────────────────────────────────────────
 # URL where collected metrics are POSTed.
 # Change this when deploying to staging / production.
-backend_url: "http://localhost:8000/metrics"
+backend_url: "http://127.0.0.1:8000/metrics"
 
 
 
@@ -75,8 +75,10 @@ log_watch_files:
   - "watched_logs/application.log"
   - "watched_logs/database.log"
   - "watched_logs/server.log"
+  - "watched_logs/springboot.log"
+
 
 # (Optional) Explicit URL for the logs endpoint.
 # If omitted, the agent derives it from backend_url:
 #   http://backend:5000/metrics  →  http://backend:5000/logs
-logs_backend_url: "http://localhost:8000/logs"
+logs_backend_url: "http://127.0.0.1:8000/logs"

@@ -12,6 +12,7 @@ from backend.service_impact.routes import router as service_impact_router  # Pha
 from backend.routes.incident_routes import router as incident_router  # Phase 12
 from backend.recommendation_engine import recommendation_router  # Phase 13
 from backend.api.alert_routes import router as alert_router  # Phase 14
+from backend.routes.log_anomaly_routes import router as log_anomaly_router  # Phase 15
 from app.ml_service import get_ml_service
 from backend.jobs.correlation_scheduler import get_scheduler
 from backend.services.log_anomaly_service import get_log_anomaly_service
@@ -167,6 +168,7 @@ app.include_router(service_impact_router)  # Phase 11: Service Impact Analysis &
 app.include_router(incident_router)  # Phase 12: Alert Prioritization & Incident Management
 app.include_router(recommendation_router)  # Phase 13: Recommendation Engine
 app.include_router(alert_router)  # Phase 14: Real-Time Alerting System
+app.include_router(log_anomaly_router)  # Phase 15: Log Anomaly API for Dashboard
 
 
 # =========================================================

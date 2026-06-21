@@ -194,7 +194,7 @@ def get_backend_response_time():
     if Config and hasattr(Config, "BACKEND_URL"):
         url = Config.BACKEND_URL
     else:
-        url = "http://localhost:8000/metrics"
+        url = "http://127.0.0.1:8000/metrics"
 
     health_url = url.replace("/metrics", "/health")
     try:
@@ -394,20 +394,20 @@ def post_rca_to_backend(rca_event):
     if Config and hasattr(Config, "BACKEND_URL"):
         url = Config.BACKEND_URL.replace("/metrics", "/anomalies")
     else:
-        url = "http://localhost:8000/anomalies"
+        url = "http://127.0.0.1:8000/anomalies"
 
     # Calculate severity and detected_by as per Phase 5 spec
     iso_alert = rca_event.get("isolation_forest_result") == -1
     ae_alert = rca_event.get("reconstruction_error", 0.0) > AE_THRESHOLD
     
-    severity = "CRITICAL" if (iso_alert and ae_alert) else "WARNING"
+    severity = "critical" if (iso_alert and ae_alert) else "warning"
     
     detectors = []
     if iso_alert:
-        detectors.append("Isolation Forest")
+        detectors.append("isolation_forest")
     if ae_alert:
-        detectors.append("LSTM Autoencoder")
-    detected_by = " + ".join(detectors) if detectors else "Unknown"
+        detectors.append("autoencoder")
+    detected_by = "+".join(detectors) if detectors else "unknown"
 
     # Parse and standardise timestamp
     ts_str = rca_event.get("timestamp")
@@ -424,7 +424,8 @@ def post_rca_to_backend(rca_event):
         "root_cause": rca_event.get("root_cause"),
         "severity": severity,
         "detected_by": detected_by,
-        "ml_model_version": "1.0.0"
+        "ml_model_version": "1.0.0",
+        "metric_id": rca_event.get("metric_id")
     }
 
     try:
@@ -506,7 +507,7 @@ def read_latest_metrics():
     if Config and hasattr(Config, "BACKEND_URL"):
         url = Config.BACKEND_URL
     else:
-        url = "http://localhost:8000/metrics"
+        url = "http://127.0.0.1:8000/metrics"
 
     try:
         response = requests.get(f"{url}?limit=1", timeout=BACKEND_TIMEOUT)
@@ -515,6 +516,7 @@ def read_latest_metrics():
             if data and isinstance(data, list):
                 latest = data[0]
                 return {
+                    "id": latest.get("id"),
                     "cpu_usage": latest.get("cpu_usage", 0.0),
                     "ram_usage": latest.get(
                         "ram_usage",
@@ -538,6 +540,7 @@ def read_latest_metrics():
             data = json.load(file)
         latest = data[-1]
         return {
+            "id": latest.get("id", 1),
             "cpu_usage": latest.get("cpu_usage", 0.0),
             "ram_usage": latest.get("ram_usage", 0.0),
             "disk_usage": latest.get("disk_usage", 0.0),
@@ -833,6 +836,7 @@ if __name__ == "__main__":
                             iso_prediction
                         ),
                         "reconstruction_error": float(mse),
+                        "metric_id": metrics.get("id"),
                     }
 
                     # Save locally
