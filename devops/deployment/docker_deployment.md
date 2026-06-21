@@ -57,6 +57,7 @@ docker ps
 CONTAINER ID  IMAGE                    STATUS         PORTS
 abc123        metricguard-monitoring   Up 30 seconds
 def456        metricguard-backend      Up 30 seconds  0.0.0.0:8000->8000/tcp
+ghi789        metricguard-frontend     Up 30 seconds  0.0.0.0:5173->5173/tcp
 ```
 
 ---
@@ -103,8 +104,9 @@ docker-compose -f docker/docker-compose.yml build
 ```
 
 This builds:
-- `metricguard-monitoring` from `docker/Dockerfile.monitoring`
-- Backend image should be built by the backend team
+- `metricguard-monitoring` from `docker/Dockerfile.monitoring` (monitoring agent)
+- `metricguard-backend` from `docker/Dockerfile.backend` (FastAPI backend service)
+- `metricguard-frontend` from `docker/Dockerfile.frontend` (React + Vite dashboard)
 - The backend connects to TiDB Cloud (external managed database — no local DB container required)
 
 ### Step 4: Start the Services

@@ -1,0 +1,66 @@
+# ==========================================================
+# MetricGuard - Root .dockerignore
+# ==========================================================
+
+# Caches and bytecodes
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Node dependencies and builds
+**/node_modules/
+**/dist/
+frontend/.svelte-kit/
+frontend/.next/
+frontend/out/
+
+# Virtual Environments
+.venv/
+venv/
+env/
+
+# Environment configurations
+.env
+.env.*
+
+# Application runtime files & logs
+logs/
+**/logs/
+**/watched_logs/
+metrics.json
+**/metrics.json
+
+# Pytest / Coverage files
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editor / IDE settings
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Git configurations
+.git/
+.gitignore
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Exclude general pickled and keras models by default
+**/*.pkl
+**/*.joblib
+**/*.h5
+**/*.keras
+**/*.db
+**/*.sqlite3
+
+# EXCEPT for our pre-trained production ML models
+!devops/models/**/*.pkl
+!devops/models/**/*.h5

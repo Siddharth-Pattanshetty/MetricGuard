@@ -294,39 +294,39 @@ def load_config(path: str | None = None) -> AgentConfig:
 
     config = AgentConfig(
         backend_url=str(
-            raw.get("backend_url", _DEFAULTS["backend_url"])
+            os.environ.get("BACKEND_URL") or raw.get("backend_url", _DEFAULTS["backend_url"])
         ),
         collection_interval=_validate_positive_int(
-            raw.get("collection_interval"),
+            os.environ.get("COLLECTION_INTERVAL") or raw.get("collection_interval"),
             "collection_interval",
             _DEFAULTS["collection_interval"],
         ),
         agent_name=str(
-            raw.get("agent_name", _DEFAULTS["agent_name"])
+            os.environ.get("AGENT_NAME") or raw.get("agent_name", _DEFAULTS["agent_name"])
         ),
         max_retries=_validate_positive_int(
-            raw.get("max_retries"),
+            os.environ.get("MAX_RETRIES") or raw.get("max_retries"),
             "max_retries",
             _DEFAULTS["max_retries"],
         ),
         retry_delay=_validate_positive_int(
-            raw.get("retry_delay"),
+            os.environ.get("RETRY_DELAY") or raw.get("retry_delay"),
             "retry_delay",
             _DEFAULTS["retry_delay"],
         ),
         request_timeout=_validate_positive_int(
-            raw.get("request_timeout"),
+            os.environ.get("REQUEST_TIMEOUT") or raw.get("request_timeout"),
             "request_timeout",
             _DEFAULTS["request_timeout"],
         ),
         log_file=str(
-            raw.get("log_file", _DEFAULTS["log_file"])
+            os.environ.get("LOG_FILE") or raw.get("log_file", _DEFAULTS["log_file"])
         ),
         log_level=_validate_log_level(
-            raw.get("log_level", _DEFAULTS["log_level"])
+            os.environ.get("LOG_LEVEL") or raw.get("log_level", _DEFAULTS["log_level"])
         ),
         disk_path=str(
-            raw.get("disk_path", _DEFAULTS["disk_path"])
+            os.environ.get("DISK_PATH") or raw.get("disk_path", _DEFAULTS["disk_path"])
         ),
         enabled_metrics=_validate_enabled_metrics(
             raw.get("enabled_metrics")
@@ -336,7 +336,7 @@ def load_config(path: str | None = None) -> AgentConfig:
             raw.get("log_watch_files")
         ),
         logs_backend_url=str(
-            raw.get("logs_backend_url", _DEFAULTS["logs_backend_url"])
+            os.environ.get("LOGS_BACKEND_URL") or raw.get("logs_backend_url", _DEFAULTS["logs_backend_url"])
         ),
     )
 

@@ -44,7 +44,9 @@ services:
   # ======================================================
 
   backend:
-    image: metricguard-backend:latest
+    build:
+      context: ../..
+      dockerfile: devops/docker/Dockerfile.backend
 
     container_name: metricguard-backend
 
@@ -53,13 +55,33 @@ services:
     ports:
       - "8000:8000"
 
+    env_file:
+      - ../../.env
+
     environment:
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT:-4000}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME:-metricguard_db}
       PORT: 8000
+
+    networks:
+      - metricguard-network
+
+  # ======================================================
+  # Frontend Service (Vite + React)
+  # ======================================================
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: devops/docker/Dockerfile.frontend
+
+    container_name: metricguard-frontend
+
+    restart: on-failure
+
+    ports:
+      - "5173:5173"
+
+    depends_on:
+      - backend
 
     networks:
       - metricguard-network

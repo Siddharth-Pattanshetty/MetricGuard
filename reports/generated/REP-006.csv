@@ -1,0 +1,2 @@
+incident_id,severity,root_cause,affected_services,recommendations,overall_status
+INC-000001,High,Disk Failure,Namenode; Datanode,Check HDFS service status for namenode; Check disk SMART status; Replace failing disk; Verify backup availability; Check disk space and permissions on namenode; Check disk space and permissions on datanode; Check HDFS service status for datanode; Prioritize investigation; Assign incident owner,degraded
