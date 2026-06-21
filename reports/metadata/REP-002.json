@@ -1,0 +1,11 @@
+{
+    "report_id": "REP-002",
+    "incident_id": "INC-000014",
+    "created_at": "2026-06-13T11:33:38.937095Z",
+    "available_formats": [
+        "pdf",
+        "csv"
+    ],
+    "pdf_path": "E:\\Projects\\metric-guard\\reports\\generated\\REP-002.pdf",
+    "csv_path": "E:\\Projects\\metric-guard\\reports\\generated\\REP-002.csv"
+}

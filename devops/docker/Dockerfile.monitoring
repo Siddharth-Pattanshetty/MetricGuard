@@ -1,0 +1,129 @@
+# ==========================================================
+
+# MetricGuard - Agent Service Dockerfile
+
+# ==========================================================
+
+#
+
+# Purpose:
+
+# Containerizes the MetricGuard Agent so it can run
+
+# independently in any environment (local, cloud, CI/CD).
+
+#
+
+# Features:
+
+# - System metric collection
+
+# - Log monitoring with watchdog + pygtail
+
+# - HTTP delivery with retry/backoff
+
+# - YAML-based configuration
+
+#
+
+# How to build:
+
+# docker build -f docker/Dockerfile.monitoring -t metricguard-agent .
+
+#
+
+# How to run:
+
+# docker run --name monitor metricguard-agent
+
+#
+
+# ==========================================================
+
+# ----------------------------------------------------------
+
+# Base Image
+
+# ----------------------------------------------------------
+
+FROM python:3.11-slim
+
+# ----------------------------------------------------------
+
+# Metadata
+
+# ----------------------------------------------------------
+
+LABEL maintainer="MetricGuard DevOps Team"
+LABEL description="MetricGuard Monitoring Agent"
+LABEL version="2.0"
+
+# ----------------------------------------------------------
+
+# Environment Variables
+
+# ----------------------------------------------------------
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Default runtime configuration
+
+ENV BACKEND_URL=http://backend:5000/metrics
+ENV COLLECTION_INTERVAL=30
+ENV MAX_RETRIES=3
+ENV RETRY_DELAY=2
+ENV LOG_LEVEL=INFO
+ENV DISK_PATH=/
+
+# ----------------------------------------------------------
+
+# Working Directory
+
+# ----------------------------------------------------------
+
+WORKDIR /app
+
+# ----------------------------------------------------------
+
+# Install Dependencies
+
+# ----------------------------------------------------------
+
+# Copy requirements first for Docker layer caching
+
+COPY agent/requirements.txt .
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+# ----------------------------------------------------------
+
+# Copy Agent Source Code
+
+# ----------------------------------------------------------
+
+COPY agent/ .
+
+# ----------------------------------------------------------
+
+# Create Runtime Directories
+
+# ----------------------------------------------------------
+
+RUN mkdir -p logs watched_logs
+
+# ----------------------------------------------------------
+
+# Health Check
+
+# ----------------------------------------------------------
+
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD python -c "import psutil; psutil.cpu_percent()" || exit 1
+
+# ----------------------------------------------------------
+
+# Start MetricGuard Agent
+
+# ----------------------------------------------------------
+
+CMD ["python", "main.py"]
