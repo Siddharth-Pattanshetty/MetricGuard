@@ -8,11 +8,26 @@ Then in a separate terminal run:
     python test_api.py
 """
 
+import pytest
 import requests
 import json
 import time
 
 BASE_URL = "http://127.0.0.1:8000"
+
+
+def _server_is_reachable():
+    try:
+        requests.get(f"{BASE_URL}/health", timeout=2)
+        return True
+    except Exception:
+        return False
+
+
+pytestmark = pytest.mark.skipif(
+    not _server_is_reachable(),
+    reason="Backend server not running at http://127.0.0.1:8000"
+)
 
 
 def test_health():

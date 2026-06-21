@@ -45,9 +45,38 @@ def test_knowledge_service_archive_incident(db_session):
         impacted_services=["namenode"],
     )
     
+    from app.models import Metric, Anomaly, Log
+    
+    metric = Metric(
+        timestamp=datetime.utcnow(),
+        cpu_usage=50.0,
+        memory_usage=50.0
+    )
+    db_session.add(metric)
+    db_session.flush()
+    
+    anomaly = Anomaly(
+        timestamp=datetime.utcnow(),
+        anomaly_score=0.90,
+        root_cause="disk leak",
+        severity="critical",
+        detected_by="test",
+        metric_id=metric.id
+    )
+    db_session.add(anomaly)
+    
+    log_entry = Log(
+        timestamp=datetime.utcnow(),
+        level="ERROR",
+        service_name="namenode",
+        message="disk leak detected"
+    )
+    db_session.add(log_entry)
+    db_session.flush()
+    
     corr = Correlation(
-        metric_anomaly_id=10,
-        log_anomaly_id=20,
+        metric_anomaly_id=anomaly.id,
+        log_anomaly_id=log_entry.id,
         correlation_score=0.90,
         inferred_cause="disk leak",
         confidence=90.0,

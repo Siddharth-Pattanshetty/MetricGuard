@@ -342,9 +342,11 @@ class TestAlertingAPIs:
         assert resp_404.status_code == 404
 
     def test_ack_and_resolve_lifecycle_api(self, client):
+        import uuid
+        unique_cause = f"ACK Resolve Lifecycle {uuid.uuid4().hex[:8]}"
         # Create incident with unique root cause → auto-created alert in OPEN state
         client.post("/incidents/", json={
-            "root_cause": "ACK Resolve Lifecycle API Test",
+            "root_cause": unique_cause,
             "impacted_services": ["namenode", "datanode"],
         })
 
@@ -353,9 +355,9 @@ class TestAlertingAPIs:
         alerts = alerts_resp.json()
         open_alerts = [
             a for a in alerts
-            if a["title"] == "ACK Resolve Lifecycle API Test" and a["status"] == "OPEN"
+            if a["title"] == unique_cause and a["status"] == "OPEN"
         ]
-        assert len(open_alerts) >= 1, "Expected OPEN alert not found"
+        assert len(open_alerts) >= 1, f"Expected OPEN alert with title '{unique_cause}' not found"
         alert_id = open_alerts[0]["alert_id"]
 
         # ACK: OPEN → ACKNOWLEDGED

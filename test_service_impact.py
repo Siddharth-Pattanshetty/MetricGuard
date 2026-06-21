@@ -30,14 +30,16 @@ def test_service_graph():
     return graph
 
 
-def test_impact_analyzer(graph):
+def test_impact_analyzer():
     """Test 2: Impact Analyzer"""
+    from backend.service_impact.service_graph import ServiceDependencyGraph
     from backend.service_impact.impact_analyzer import ImpactAnalyzer
 
     print("=" * 55)
     print("TEST 2: Impact Analyzer")
     print("=" * 55)
 
+    graph = ServiceDependencyGraph()
     analyzer = ImpactAnalyzer(graph=graph)
     result = analyzer.analyze("Disk Failure", "storage", 0.94)
     print(json.dumps(result, indent=2))
@@ -51,14 +53,19 @@ def test_impact_analyzer(graph):
     return analyzer
 
 
-def test_service_health(graph, analyzer):
+def test_service_health():
     """Test 3: Service Health Engine"""
+    from backend.service_impact.service_graph import ServiceDependencyGraph
+    from backend.service_impact.impact_analyzer import ImpactAnalyzer
     from backend.service_impact.service_health import ServiceHealthEngine
 
     print("=" * 55)
     print("TEST 3: Service Health Engine")
     print("=" * 55)
 
+    graph = ServiceDependencyGraph()
+    analyzer = ImpactAnalyzer(graph=graph)
+    analyzer.analyze("Disk Failure", "storage", 0.94)
     health = ServiceHealthEngine(graph=graph, analyzer=analyzer)
     all_health = health.compute_all_health()
 
@@ -132,9 +139,9 @@ def test_unknown_service():
 if __name__ == "__main__":
     print("\n🚀 MetricGuard Phase 11 — Service Impact Analysis Tests\n")
 
-    graph = test_service_graph()
-    analyzer = test_impact_analyzer(graph)
-    test_service_health(graph, analyzer)
+    test_service_graph()
+    test_impact_analyzer()
+    test_service_health()
     test_circular_dependency()
     test_add_remove_service()
     test_unknown_service()

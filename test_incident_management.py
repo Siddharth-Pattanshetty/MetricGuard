@@ -123,11 +123,13 @@ class TestIncidentServiceFlows:
 
     def test_incident_creation_and_deduplication(self, db_session):
         service = get_incident_service()
+        import uuid
+        unique_cause = f"Dedup Test Failure {uuid.uuid4().hex[:8]}"
 
         # 1. Create initial incident
         inc1 = service.create_incident(
             db=db_session,
-            root_cause="Disk Failure",
+            root_cause=unique_cause,
             impacted_services=["namenode", "datanode"],
         )
 
@@ -141,7 +143,7 @@ class TestIncidentServiceFlows:
         # 2. Trigger a duplicate within 30 minutes
         inc2 = service.create_incident(
             db=db_session,
-            root_cause="Disk Failure",
+            root_cause=unique_cause,
             impacted_services=["datanode", "namenode"],  # swapped order, same services
         )
 
@@ -308,10 +310,12 @@ class TestIncidentAPI:
         assert resp_404.status_code == 404
 
     def test_patch_incident_status_api(self, client):
+        import uuid
+        unique_cause = f"Patch Test Failure {uuid.uuid4().hex[:8]}"
         # Create one incident
         create_resp = client.post(
             "/incidents/",
-            json={"root_cause": "Disk Failure", "impacted_services": ["client"]}
+            json={"root_cause": unique_cause, "impacted_services": ["client"]}
         )
         iid = create_resp.json()["incident_id"]
 

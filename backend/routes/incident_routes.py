@@ -194,6 +194,25 @@ def update_incident_status(
             incident_id=incident_id,
             new_status=payload.status,
         )
+
+        # Auto-archive to Knowledge Base when incident reaches RESOLVED
+        if payload.status.strip().upper() == "RESOLVED":
+            try:
+                from backend.knowledge_base.knowledge_service import get_knowledge_service
+                knowledge_svc = get_knowledge_service()
+                knowledge_svc.archive_incident(db, incident_id)
+                logger.info(
+                    "[Incident API] Auto-archived incident %s on RESOLVED transition",
+                    incident_id,
+                )
+            except Exception as arch_err:
+                # Archive failure should not block the status update
+                logger.warning(
+                    "[Incident API] Auto-archive failed for %s: %s",
+                    incident_id,
+                    arch_err,
+                )
+
         return incident
     except ValueError as ve:
         logger.warning("[Incident API] Validation error on PATCH: %s", ve)

@@ -57,10 +57,39 @@ def test_report_generation_payload_and_files(db_session):
     )
     assert incident is not None
 
+    from app.models import Metric, Anomaly, Log
+    
+    metric = Metric(
+        timestamp=datetime.utcnow(),
+        cpu_usage=50.0,
+        memory_usage=50.0
+    )
+    db_session.add(metric)
+    db_session.flush()
+    
+    anomaly = Anomaly(
+        timestamp=datetime.utcnow(),
+        anomaly_score=0.95,
+        root_cause="Node Failure",
+        severity="critical",
+        detected_by="test",
+        metric_id=metric.id
+    )
+    db_session.add(anomaly)
+    
+    log_entry = Log(
+        timestamp=datetime.utcnow(),
+        level="ERROR",
+        service_name="namenode",
+        message="Node failure detected"
+    )
+    db_session.add(log_entry)
+    db_session.flush()
+
     # Seed correlation
     corr = Correlation(
-        metric_anomaly_id=1,
-        log_anomaly_id=1,
+        metric_anomaly_id=anomaly.id,
+        log_anomaly_id=log_entry.id,
         correlation_score=0.95,
         inferred_cause="Node Failure",
         confidence=95.0,
