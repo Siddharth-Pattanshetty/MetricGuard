@@ -1,0 +1,11 @@
+{
+    "report_id": "REP-006",
+    "incident_id": "INC-000001",
+    "created_at": "2026-06-21T18:34:08.308933Z",
+    "available_formats": [
+        "pdf",
+        "csv"
+    ],
+    "pdf_path": "D:\\College\\Mini Project\\Implementation\\MetricGuard\\reports\\generated\\REP-006.pdf",
+    "csv_path": "D:\\College\\Mini Project\\Implementation\\MetricGuard\\reports\\generated\\REP-006.csv"
+}
