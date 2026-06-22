@@ -35,7 +35,7 @@ def test_health():
     r = requests.get(f"{BASE_URL}/health")
     assert r.status_code == 200, f"Health check failed: {r.status_code}"
     data = r.json()
-    print(f"   -> Status: {data['status']} | Service: {data['service']}")
+    print(f"   -> Status: {data['status']} | API: {data['api']}")
     return True
 
 
@@ -86,18 +86,36 @@ def test_get_metrics():
 
 def test_post_anomaly():
     print("4. Testing POST /anomalies/ ...")
+    # First, create a metric to satisfy the mandatory metric_id foreign key
+    metric_payload = {
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "cpu_usage": 95.0,
+        "ram_usage": 88.0,
+        "disk_usage": 60.0,
+        "disk_read_speed": "2.00 MB",
+        "disk_write_speed": "100.00 KB",
+        "network_upload_speed": "0.50 MB",
+        "network_download_speed": "10.00 KB",
+        "process_count": 400,
+        "system_load": None,
+        "system_uptime": "10h 15m 30s"
+    }
+    mr = requests.post(f"{BASE_URL}/metrics/", json=metric_payload)
+    assert mr.status_code == 201, f"Metric creation for anomaly test failed: {mr.status_code}"
+    metric_id = mr.json()["id"]
+
     payload = {
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "anomaly_score": 0.923,
         "root_cause": "CPU Usage",
-        "severity": "CRITICAL",
-        "detected_by": "Isolation Forest + LSTM Autoencoder"
+        "severity": "critical",
+        "detected_by": "Isolation Forest + LSTM Autoencoder",
+        "metric_id": metric_id
     }
     r = requests.post(f"{BASE_URL}/anomalies/", json=payload)
     assert r.status_code == 201, f"POST /anomalies/ failed: {r.status_code} - {r.text}"
     data = r.json()
     print(f"   -> Anomaly stored (ID: {data['id']}, Root Cause: {data['root_cause']})")
-    return data["id"]
 
 
 def test_get_anomalies():

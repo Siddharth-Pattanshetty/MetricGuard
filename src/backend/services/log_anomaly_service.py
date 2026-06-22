@@ -42,9 +42,9 @@ class LogAnomalyService:
     def __init__(self, model_path: Optional[str] = None):
         if model_path is None:
             # Resolve model path relative to project root
-            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
             model_path = os.path.join(
-                base_dir, "devops", "models", "isolation_forest_log", "metricguard_log_model.pkl"
+                base_dir, "models", "isolation_forest_log", "metricguard_log_model.pkl"
             )
 
         self.model_path = model_path

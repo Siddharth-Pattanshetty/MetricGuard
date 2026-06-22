@@ -57,8 +57,19 @@ AGENT_DIR = os.path.join(PROJECT_ROOT, "agent")
 sys.path.insert(0, AGENT_DIR)
 
 # Key file paths
-# The agent writes logs to  agent/logs/agent.log
-AGENT_LOG_FILE = os.path.join(AGENT_DIR, "logs", "agent.log")
+# Resolve agent log file dynamically (checks agent/logs/agent.log and root logs/agent.log)
+AGENT_LOG_FILE_CANDIDATES = [
+    os.path.join(AGENT_DIR, "logs", "agent.log"),
+    os.path.join(PROJECT_ROOT, "logs", "agent.log"),
+]
+
+# Pick the newest existing log file, fallback to the default path
+AGENT_LOG_FILE = AGENT_LOG_FILE_CANDIDATES[0]
+for path in AGENT_LOG_FILE_CANDIDATES:
+    if os.path.exists(path):
+        if not os.path.exists(AGENT_LOG_FILE) or os.path.getmtime(path) > os.path.getmtime(AGENT_LOG_FILE):
+            AGENT_LOG_FILE = path
+
 ANOMALY_LOG_FILE = os.path.join(PROJECT_ROOT, "logs", "anomaly_logs.csv")
 SYSTEM_LOG_FILE = os.path.join(PROJECT_ROOT, "logs", "system.log")
 

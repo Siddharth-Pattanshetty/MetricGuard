@@ -119,16 +119,22 @@ async def lifespan(app: FastAPI):
     logger.info("Log anomaly detection model and vectorizer verified successfully.")
 
     # Start automated scheduler
-    logger.info("Starting background correlation scheduler...")
-    scheduler = get_scheduler()
-    scheduler.start()
+    import sys
+    is_testing = "pytest" in sys.modules or os.getenv("METRICGUARD_TESTING") == "True"
+    if not is_testing:
+        logger.info("Starting background correlation scheduler...")
+        scheduler = get_scheduler()
+        scheduler.start()
+    else:
+        logger.info("Skipping background correlation scheduler startup (Testing environment detected).")
         
     yield
     logger.info("MetricGuard backend shutting down...")
     
     # Stop background scheduler
-    logger.info("Stopping background correlation scheduler...")
-    get_scheduler().shutdown()
+    if not is_testing:
+        logger.info("Stopping background correlation scheduler...")
+        get_scheduler().shutdown()
     
     engine.dispose()
 
