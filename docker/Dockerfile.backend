@@ -1,0 +1,43 @@
+# ==========================================================
+# MetricGuard - Backend Service Dockerfile
+# ==========================================================
+
+# Base Image
+FROM python:3.11-slim
+
+LABEL maintainer="MetricGuard DevOps Team"
+LABEL description="MetricGuard FastAPI Backend Service"
+LABEL version="1.0"
+
+# Prevent python from writing bytecode (.pyc) and buffer stdout
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# Install system compiler and dependency build tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy backend requirements for efficient layer caching
+COPY src/backend/requirements.txt ./backend_requirements.txt
+COPY docs/legacy_monitoring/requirements.txt ./monitoring_requirements.txt
+
+# Install standard uvicorn/fastapi dependencies
+RUN pip install --no-cache-dir -r backend_requirements.txt
+# Install machine learning libraries (Tensorflow, Scikit-learn, etc.)
+RUN pip install --no-cache-dir -r monitoring_requirements.txt
+
+# Copy source directories and ML models
+COPY src/ ./src/
+COPY models/ ./models/
+
+# Set PYTHONPATH to search inside the src directory
+ENV PYTHONPATH=/app/src
+
+# Expose FastAPI server port
+EXPOSE 8000
+
+# Start Backend API using Uvicorn
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -62,5 +62,5 @@ Thumbs.db
 **/*.sqlite3
 
 # EXCEPT for our pre-trained production ML models
-!devops/models/**/*.pkl
-!devops/models/**/*.h5
+!models/**/*.pkl
+!models/**/*.h5
