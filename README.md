@@ -1,5 +1,9 @@
 # 🛡️ MetricGuard — AIOps Anomaly Detection Platform
 
+![Status](https://img.shields.io/badge/Status-Completed_v1.0-success?style=for-the-badge)
+![Python](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge&logo=python)
+![React](https://img.shields.io/badge/React-19-61dafb?style=for-the-badge&logo=react)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ed?style=for-the-badge&logo=docker)
 MetricGuard is an AI-powered, real-time system monitoring and anomaly detection platform built for intelligent IT operations (AIOps). It collects live system metrics and application logs, transmits them to a centralized backend API, and applies a dual-model machine learning pipeline (Isolation Forest + LSTM Autoencoder) to detect both instant point anomalies and long-term temporal behavior anomalies — all presented through a modern, real-time React dashboard.
 
 ---
