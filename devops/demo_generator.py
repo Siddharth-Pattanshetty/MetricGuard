@@ -1,10 +1,13 @@
+import os
 import time
 import requests
 import random
 from datetime import datetime, timezone
 
-# URL of the MetricGuard backend
-BASE_URL = "http://127.0.0.1:8000"
+# URL of the MetricGuard backend (configurable via environment variable for Docker)
+BASE_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
+CONTINUOUS_MODE = os.getenv("CONTINUOUS_MODE", "false").lower() == "true"
+
 
 def send_metric(cpu, ram, disk):
     payload = {
@@ -65,4 +68,10 @@ def run_demo():
     print("\n✅ Demo sequence complete. Check the MetricGuard dashboard and Incident views!")
 
 if __name__ == "__main__":
-    run_demo()
+    if CONTINUOUS_MODE:
+        print("Running in continuous mode...")
+        while True:
+            run_demo()
+            time.sleep(10)
+    else:
+        run_demo()

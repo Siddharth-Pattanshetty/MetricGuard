@@ -2,8 +2,8 @@
  * ==========================================================
  * MetricGuard — ReportsPanel Component
  * ==========================================================
- * Allows operators to select active incidents, choose PDF or CSV export
- * formats, trigger the report generation service, and download reports.
+ * Allows operators to select active incidents, generate a PDF
+ * report, and directly download the PDF in a single action.
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -14,8 +14,6 @@ export default function ReportsPanel() {
   const [reports, setReports] = useState([]);
   
   const [selectedIncident, setSelectedIncident] = useState('');
-  const [pdfSelected, setPdfSelected] = useState(true);
-  const [csvSelected, setCsvSelected] = useState(true);
   
   const [loadingIncidents, setLoadingIncidents] = useState(true);
   const [loadingReports, setLoadingReports] = useState(true);
@@ -58,19 +56,11 @@ export default function ReportsPanel() {
     loadReports();
   }, [loadReports]);
 
-  // Handle generation action
-  const handleGenerate = async (e) => {
+  // Handle generation + immediate download
+  const handleGenerateAndDownload = async (e) => {
     e.preventDefault();
     if (!selectedIncident) {
       setErrorMsg('Please select a valid incident first.');
-      return;
-    }
-    const selectedFormats = [];
-    if (pdfSelected) selectedFormats.push('pdf');
-    if (csvSelected) selectedFormats.push('csv');
-
-    if (selectedFormats.length === 0) {
-      setErrorMsg('Please select at least one file format (PDF or CSV).');
       return;
     }
 
@@ -79,10 +69,20 @@ export default function ReportsPanel() {
     setSuccessMsg('');
 
     try {
-      const response = await generateReport(selectedIncident, selectedFormats);
+      // Generate PDF report on backend
+      const response = await generateReport(selectedIncident, ['pdf']);
       if (response.status === 'success') {
-        setSuccessMsg(`Successfully generated report ${response.report_id}!`);
+        setSuccessMsg(`Report ${response.report_id} generated! Downloading PDF...`);
         await loadReports();
+
+        // Trigger immediate browser download
+        const downloadUrl = getReportDownloadUrl(response.report_id, 'pdf');
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = `MetricGuard_Report_${response.report_id}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       } else {
         setErrorMsg('Report generation failed. Please try again.');
       }
@@ -108,7 +108,7 @@ export default function ReportsPanel() {
               </div>
               <div>
                 <h4 className="text-sm font-bold text-slate-200 uppercase tracking-wide">Generate Incident Report</h4>
-                <p className="text-[10px] text-slate-500 font-bold uppercase mt-0.5">Automated Report Generation Service</p>
+                <p className="text-[10px] text-slate-500 font-bold uppercase mt-0.5">PDF Report — Direct Download</p>
               </div>
             </div>
 
@@ -122,7 +122,7 @@ export default function ReportsPanel() {
                 <p className="text-slate-500 text-xs italic">No incidents available to report on.</p>
               </div>
             ) : (
-              <form onSubmit={handleGenerate} className="space-y-6">
+              <form onSubmit={handleGenerateAndDownload} className="space-y-6">
                 {/* Incident Dropdown */}
                 <div className="space-y-2">
                   <label htmlFor="incidentSelect" className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
@@ -142,72 +142,16 @@ export default function ReportsPanel() {
                   </select>
                 </div>
 
-                {/* Formats Checklist */}
-                <div className="space-y-3">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
-                    Export Formats
-                  </span>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    {/* PDF Format Selection */}
-                    <label 
-                      onClick={() => setPdfSelected(!pdfSelected)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-200 cursor-pointer select-none ${
-                        pdfSelected 
-                          ? 'bg-indigo-500/10 border-indigo-500/30 text-slate-200' 
-                          : 'bg-[#090d16]/30 border-slate-800/80 text-slate-500 hover:text-slate-400'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={pdfSelected}
-                        onChange={() => {}} // handled by click on label
-                        className="hidden"
-                      />
-                      <div className={`w-4 h-4 rounded-md border flex items-center justify-center transition-all ${
-                        pdfSelected ? 'bg-indigo-600 border-indigo-500' : 'border-slate-700'
-                      }`}>
-                        {pdfSelected && (
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
-                      </div>
-                      <div className="flex flex-col text-left">
-                        <span className="text-xs font-bold font-mono">PDF Format</span>
-                        <span className="text-[9px] text-slate-500 font-medium">Standard formatted report</span>
-                      </div>
-                    </label>
-
-                    {/* CSV Format Selection */}
-                    <label 
-                      onClick={() => setCsvSelected(!csvSelected)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-200 cursor-pointer select-none ${
-                        csvSelected 
-                          ? 'bg-emerald-500/10 border-emerald-500/30 text-slate-200' 
-                          : 'bg-[#090d16]/30 border-slate-800/80 text-slate-500 hover:text-slate-400'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={csvSelected}
-                        onChange={() => {}} // handled by click on label
-                        className="hidden"
-                      />
-                      <div className={`w-4 h-4 rounded-md border flex items-center justify-center transition-all ${
-                        csvSelected ? 'bg-emerald-600 border-emerald-500' : 'border-slate-700'
-                      }`}>
-                        {csvSelected && (
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
-                      </div>
-                      <div className="flex flex-col text-left">
-                        <span className="text-xs font-bold font-mono">CSV Format</span>
-                        <span className="text-[9px] text-slate-500 font-medium">Raw metrics summary</span>
-                      </div>
-                    </label>
+                {/* Output format indicator */}
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-slate-200">
+                  <div className="w-4 h-4 rounded-md bg-indigo-600 border border-indigo-500 flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <div className="flex flex-col text-left">
+                    <span className="text-xs font-bold font-mono">PDF Format</span>
+                    <span className="text-[9px] text-slate-500 font-medium">Standard formatted report</span>
                   </div>
                 </div>
 
@@ -240,14 +184,14 @@ export default function ReportsPanel() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
-                      Assembling Report Data...
+                      Generating PDF...
                     </>
                   ) : (
                     <>
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                       </svg>
-                      Compile and Export
+                      Generate & Download PDF
                     </>
                   )}
                 </button>
@@ -286,7 +230,7 @@ export default function ReportsPanel() {
               <svg className="w-8 h-8 text-slate-700 mx-auto mb-3" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
               </svg>
-              <p className="text-slate-500 text-xs italic">No reports generated yet. Configure and compile one on the left.</p>
+              <p className="text-slate-500 text-xs italic">No reports generated yet. Select an incident and generate one.</p>
             </div>
           ) : (
             <div className="overflow-x-auto max-h-[500px] overflow-y-auto custom-scrollbar">
@@ -296,14 +240,13 @@ export default function ReportsPanel() {
                     <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[10px]">Report ID</th>
                     <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[10px]">Incident ID</th>
                     <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[10px]">Created At</th>
-                    <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[10px]">Downloads</th>
+                    <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[10px]">Download</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-900/30">
                   {reports.map((rep) => {
                     const formats = rep.available_formats || [];
                     const hasPdf = formats.includes('pdf');
-                    const hasCsv = formats.includes('csv');
 
                     return (
                       <tr key={rep.report_id} className="hover:bg-indigo-500/[0.01] transition-colors duration-150">
@@ -317,43 +260,22 @@ export default function ReportsPanel() {
                           {rep.created_at ? new Date(rep.created_at).toLocaleString() : '—'}
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center gap-2.5">
-                            {/* PDF Download Link */}
-                            {hasPdf ? (
-                              <a
-                                href={getReportDownloadUrl(rep.report_id, 'pdf')}
-                                className="px-2.5 py-1 rounded bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 hover:text-indigo-300 border border-indigo-500/20 hover:border-indigo-500/30 text-[10px] font-bold font-mono transition-all decoration-none flex items-center gap-1 cursor-pointer"
-                                title="Download PDF Report"
-                              >
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                                </svg>
-                                PDF
-                              </a>
-                            ) : (
-                              <span className="px-2.5 py-1 rounded bg-slate-900/40 text-slate-600 border border-transparent text-[10px] font-bold font-mono select-none">
-                                PDF N/A
-                              </span>
-                            )}
-
-                            {/* CSV Download Link */}
-                            {hasCsv ? (
-                              <a
-                                href={getReportDownloadUrl(rep.report_id, 'csv')}
-                                className="px-2.5 py-1 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 border border-emerald-500/20 hover:border-emerald-500/30 text-[10px] font-bold font-mono transition-all decoration-none flex items-center gap-1 cursor-pointer"
-                                title="Download CSV Data"
-                              >
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                                </svg>
-                                CSV
-                              </a>
-                            ) : (
-                              <span className="px-2.5 py-1 rounded bg-slate-900/40 text-slate-600 border border-transparent text-[10px] font-bold font-mono select-none">
-                                CSV N/A
-                              </span>
-                            )}
-                          </div>
+                          {hasPdf ? (
+                            <a
+                              href={getReportDownloadUrl(rep.report_id, 'pdf')}
+                              className="px-2.5 py-1 rounded bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 hover:text-indigo-300 border border-indigo-500/20 hover:border-indigo-500/30 text-[10px] font-bold font-mono transition-all decoration-none flex items-center gap-1 cursor-pointer w-fit"
+                              title="Download PDF Report"
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                              </svg>
+                              PDF
+                            </a>
+                          ) : (
+                            <span className="px-2.5 py-1 rounded bg-slate-900/40 text-slate-600 border border-transparent text-[10px] font-bold font-mono select-none">
+                              PDF N/A
+                            </span>
+                          )}
                         </td>
                       </tr>
                     );

@@ -5,8 +5,8 @@ import MetricAnomalies from './components/MetricAnomalies';
 import LogAnomalies from './components/LogAnomalies';
 import CorrelationPanel from './components/CorrelationPanel';
 import RCAView from './components/RCAView';
-import DependencyGraph from './components/DependencyGraph';
-import ServiceImpactView from './components/ServiceImpactView';
+
+
 import IncidentTable from './components/IncidentTable';
 import RecommendationPanel from './components/RecommendationPanel';
 import LiveAlerts from './components/LiveAlerts';
@@ -93,20 +93,6 @@ function App() {
             Anomalies Feed
           </button>
 
-          <button
-            onClick={() => setActiveTab('topology')}
-            className={`sidebar-link w-full text-left flex items-center gap-3 ${
-              activeTab === 'topology' ? 'active' : ''
-            }`}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <circle cx="12" cy="5" r="3" />
-              <circle cx="5" cy="18" r="3" />
-              <circle cx="19" cy="18" r="3" />
-              <path d="M12 8v4M5 15l5-3M19 15l-5-3" />
-            </svg>
-            Service Topology
-          </button>
 
           <button
             onClick={() => setActiveTab('incidents')}
@@ -256,35 +242,6 @@ function App() {
             </>
           )}
 
-          {/* TAB 3: TOPOLOGY & SERVICE DEPENDENCY */}
-          {activeTab === 'topology' && (
-            <>
-              {/* Service Impact Dashboard */}
-              <div className="space-y-4">
-                <h3 className="section-title">
-                  <svg className="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                  Service Impact Analysis
-                </h3>
-                <ServiceImpactView />
-              </div>
-
-              {/* Interactive Dependency Graph */}
-              <div className="space-y-4">
-                <h3 className="section-title">
-                  <svg className="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <circle cx="12" cy="5" r="3" />
-                    <circle cx="5" cy="18" r="3" />
-                    <circle cx="19" cy="18" r="3" />
-                    <path d="M12 8v4M5 15l5-3M19 15l-5-3" />
-                  </svg>
-                  Interactive Topology Map
-                </h3>
-                <DependencyGraph />
-              </div>
-            </>
-          )}
 
           {/* TAB 4: INCIDENTS & ACTIONS */}
           {activeTab === 'incidents' && (

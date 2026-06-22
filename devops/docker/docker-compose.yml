@@ -151,6 +151,30 @@ services:
     networks:
       - metricguard-network
 
+  # ======================================================
+  # Demo Log/Metric Generator
+  # ======================================================
+  #
+  # Responsibilities:
+  # - Continuously generate demo logs and metrics
+  # - Send data to backend API to populate dashboard
+  #
+  # ======================================================
+
+  demo-generator:
+    image: python:3.11-slim
+    container_name: metricguard-demo-generator
+    volumes:
+      - ../demo_generator.py:/app/demo_generator.py
+    command: sh -c "pip install requests && python /app/demo_generator.py"
+    environment:
+      - BACKEND_URL=http://backend:8000
+      - CONTINUOUS_MODE=true
+    depends_on:
+      - backend
+    networks:
+      - metricguard-network
+
 # ======================================================
 # Shared Docker Network
 # ======================================================
