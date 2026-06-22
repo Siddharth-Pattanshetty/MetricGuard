@@ -1,5 +1,5 @@
 # ==========================================================
-# MetricGuard — Docker Startup with Log File Output
+# MetricGuard - Docker Startup with Log File Output
 # ==========================================================
 #
 # This script runs all MetricGuard Docker services and saves
@@ -17,7 +17,7 @@ $LogFile = Join-Path $PSScriptRoot "docker_logs.txt"
 
 Write-Host ""
 Write-Host "================================================" -ForegroundColor Cyan
-Write-Host "  MetricGuard — Docker Compose (with logging)" -ForegroundColor Cyan
+Write-Host "  MetricGuard - Docker Compose (with logging)" -ForegroundColor Cyan
 Write-Host "================================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  Log file: $LogFile" -ForegroundColor Yellow
