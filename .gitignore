@@ -158,3 +158,21 @@ docker-compose.override.yml
 build/
 dist/
 *.egg-info/
+
+# ----------------------------------------------------------
+
+# Agent Log Offsets & State
+
+# ----------------------------------------------------------
+
+.offsets/
+agent/.offsets/
+
+# ----------------------------------------------------------
+
+# Generated Reports
+
+# ----------------------------------------------------------
+
+src/reports/generated/
+src/reports/metadata/

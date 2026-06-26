@@ -66,6 +66,7 @@ MetricGuard/
 │       ├── tests/                    # Backend unit tests
 │       ├── utils/                    # Utility functions
 │       └── requirements.txt          # Backend Python dependencies
+│   └── reports/                      # (Git-ignored) Auto-generated PDF reports
 │
 ├── frontend/                         # React + Vite dashboard
 │   └── src/
@@ -92,7 +93,8 @@ MetricGuard/
 │   ├── sender.py                     # HTTP sender to backend
 │   ├── log_collector.py              # Log file monitoring (watchdog + pygtail)
 │   ├── log_parser.py                 # Structured log parsing
-│   └── config.yaml                   # Agent runtime configuration
+│   ├── config.yaml                   # Agent runtime configuration
+│   └── .offsets/                     # (Git-ignored) Log reading state offsets
 │
 ├── models/                           # Pre-trained ML model weights
 │   ├── isolation_forest/             # Isolation Forest model + scaler
@@ -121,6 +123,7 @@ MetricGuard/
 │   ├── demo_generator.py             # Demo data generator (metrics + logs)
 │   └── seed_demo_data.py             # Database seeding script
 │
+├── Notebooks/                        # Jupyter notebooks for EDA and testing
 ├── docs/                             # Documentation
 │   ├── deployment/                   # Deployment guides
 │   └── legacy_monitoring/            # Legacy monitoring docs (deprecated)
