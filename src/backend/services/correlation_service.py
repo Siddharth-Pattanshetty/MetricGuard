@@ -30,6 +30,7 @@ _LOG_LEVEL_TO_SEVERITY = {
 }
 
 _TIME_WINDOW_SECONDS = 60
+_MIN_CORRELATION_SCORE = 0.30
 
 
 class CorrelationService:
@@ -292,8 +293,12 @@ class CorrelationService:
                 )
                 logger.info("[Correlation Engine] Score calculated")
 
-                # Reject score <= 0
-                if score_info["correlation_score"] <= 0:
+                # Reject weak correlations below threshold
+                if score_info["correlation_score"] < _MIN_CORRELATION_SCORE:
+                    logger.debug(
+                        "[Correlation Engine] Score %.2f below threshold %.2f — skipped",
+                        score_info["correlation_score"], _MIN_CORRELATION_SCORE,
+                    )
                     continue
 
                 # Duplicate check
